@@ -1,0 +1,68 @@
+# OpenTelemetry Collector configuration for the Railway template.
+# Every setting below can be changed with a service variable; see README.md.
+
+extensions:
+  # Railway's deploy health check probes the PORT variable (13133 by default).
+  health_check:
+    endpoint: ":${env:PORT:-13133}"
+    path: /
+  # Every OTLP request must carry "Authorization: Bearer <OTEL_AUTH_TOKEN>".
+  bearertokenauth:
+    scheme: Bearer
+    token: ${env:OTEL_AUTH_TOKEN}
+  # Persistent export queue on the Railway volume (survives redeploys).
+  file_storage:
+    directory: /var/lib/otelcol/file_storage
+    create_directory: true
+
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: ":4317"
+        auth:
+          authenticator: bearertokenauth
+      http:
+        endpoint: ":4318"
+        auth:
+          authenticator: bearertokenauth
+
+processors:
+  memory_limiter:
+    check_interval: 1s
+    limit_mib: ${env:OTEL_MEMORY_LIMIT_MIB:-1024}
+    spike_limit_mib: ${env:OTEL_MEMORY_SPIKE_LIMIT_MIB:-256}
+  batch: {}
+
+exporters:
+  # Prints a summary of everything received to the deploy logs.
+  debug:
+    verbosity: ${env:OTEL_DEBUG_VERBOSITY:-basic}
+  # Forwards everything to any OTLP/HTTP backend (Grafana Cloud, Honeycomb,
+  # Axiom, a self-hosted Jaeger/Tempo/SigNoz, ...). Only used when listed in
+  # OTEL_EXPORTERS.
+  otlphttp/upstream:
+    endpoint: ${env:OTLP_UPSTREAM_ENDPOINT:-http://localhost:4318}
+    headers: ${env:OTLP_UPSTREAM_HEADERS:-[]}
+    retry_on_failure:
+      enabled: true
+      max_elapsed_time: 0s
+    sending_queue:
+      enabled: true
+      storage: file_storage
+
+service:
+  extensions: [health_check, bearertokenauth, file_storage]
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: ${env:OTEL_EXPORTERS:-[debug]}
+    metrics:
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: ${env:OTEL_EXPORTERS:-[debug]}
+    logs:
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: ${env:OTEL_EXPORTERS:-[debug]}
