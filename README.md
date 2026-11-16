@@ -12,7 +12,7 @@ One service, built from this repo:
 | Port | What | Reachable from |
 |---|---|---|
 | 4318 | OTLP/HTTP receiver | Public Railway domain (`https://YOUR-DOMAIN/v1/traces`, `/v1/metrics`, `/v1/logs`) and the private network |
-| 4317 | OTLP/gRPC receiver | Private network only (`collector.railway.internal:4317`) |
+| 4317 | OTLP/gRPC receiver | Private network only (`otel-collector.railway.internal:4317`) |
 | 13133 | Health check (`PORT`) | Railway's deploy health check |
 
 Both receivers require `Authorization: Bearer <OTEL_AUTH_TOKEN>`. Requests without it get `401` (HTTP) or `Unauthenticated` (gRPC).
@@ -41,7 +41,7 @@ OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf
 OTEL_EXPORTER_OTLP_HEADERS=Authorization=Bearer%20YOUR-TOKEN
 ```
 
-From another service in the same Railway project, use `http://${{opentelemetry-collector.RAILWAY_PRIVATE_DOMAIN}}:4318` (HTTP) or port `4317` (gRPC), with the token from `${{opentelemetry-collector.OTEL_AUTH_TOKEN}}` (use your service's name).
+From another service in the same Railway project, use `http://${{otel-collector.RAILWAY_PRIVATE_DOMAIN}}:4318` (HTTP) or port `4317` (gRPC), with the token from `${{otel-collector.OTEL_AUTH_TOKEN}}` (the service is called `otel-collector`).
 
 ## Updates
 
