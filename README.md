@@ -1,3 +1,5 @@
+[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/new/template/opentelemetry-coll-1?utm_medium=integration&utm_source=button&utm_campaign=opentelemetry-collector)
+
 # OpenTelemetry Collector on Railway
 
 Railway template for the [OpenTelemetry Collector](https://opentelemetry.io/docs/collector/) (contrib distribution), a vendor-neutral gateway that receives traces, metrics and logs over OTLP, batches them and forwards them to any backend.
